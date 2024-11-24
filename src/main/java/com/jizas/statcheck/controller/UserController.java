@@ -112,4 +112,17 @@ public class UserController {
                     .body(Map.of("error", "Invalid email or password"));
         }
     }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout() {
+        logger.info("Processing logout request");
+        try {
+            // Clear any server-side session/token if needed
+            return ResponseEntity.ok(Map.of("message", "Logged out successfully"));
+        } catch (Exception e) {
+            logger.error("Logout failed", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Logout failed"));
+        }
+    }
 }
