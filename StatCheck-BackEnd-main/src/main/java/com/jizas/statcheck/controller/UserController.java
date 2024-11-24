@@ -139,4 +139,50 @@ public class UserController {
                     .body(Map.of("error", "Logout failed"));
         }
     }
+
+    @PutMapping("/{userID}")
+    public ResponseEntity<?> updateUser(@PathVariable Long userID, @RequestBody UserEntity updatedUser) {
+        logger.info("Attempting to update user with ID: {}", userID);
+
+        try {
+            // Use the existing method to find the user by ID
+            UserEntity existingUser = userService.findById(userID);
+            if (existingUser == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("error", "User not found"));
+            }
+
+            // Update only the necessary fields
+            existingUser.setEmail(updatedUser.getEmail());
+            existingUser.setPhoneNumber(updatedUser.getPhoneNumber());
+            existingUser.setRole(updatedUser.getRole());
+
+            // Call the updateUser method in service to persist the changes
+            UserEntity savedUser = userService.updateUser(userID, existingUser);
+            logger.info("Successfully updated user with ID: {}", savedUser.getUserID());
+
+            return ResponseEntity.ok(savedUser);
+        } catch (Exception e) {
+            logger.error("Error updating user", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Failed to update user. Please try again."));
+        }
+    }
+
+
+    @DeleteMapping("/{userId}")
+    public ResponseEntity<?> deleteUser(@PathVariable Long userId) {
+        logger.info("Attempting to delete user with ID: {}", userId);
+
+        try {
+            // Call service method
+            userService.deleteUser(userId);
+            logger.info("Successfully deleted user with ID: {}", userId);
+            return ResponseEntity.ok(Map.of("message", "User deleted successfully"));
+        } catch (RuntimeException e) {
+            logger.error("Error deleting user with ID: {}", userId, e);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", e.getMessage()));
+        }
+    }
 }
