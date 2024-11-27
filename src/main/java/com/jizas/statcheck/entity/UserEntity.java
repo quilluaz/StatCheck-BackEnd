@@ -20,6 +20,9 @@ public class UserEntity {
 
     private String role; // e.g., "admin" or "user"
 
+    @Column(nullable = false)
+    private String name;
+
     // Getters and setters
     public Long getUserID() {
         return userID;
@@ -59,5 +62,13 @@ public class UserEntity {
 
     public void setRole(String role) {
         this.role = role;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 }

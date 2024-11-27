@@ -107,6 +107,8 @@ public class UserController {
             user.setEmail(request.getEmail());
             user.setPassword(request.getPassword());
             user.setPhoneNumber(request.getPhone());
+            user.setName(request.getName());
+            user.setRole("USER");
 
             UserEntity registeredUser = userService.registerUser(user);
 
