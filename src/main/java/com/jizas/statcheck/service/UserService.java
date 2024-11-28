@@ -63,18 +63,31 @@ public class UserService {
     }
 
     public UserEntity updateUser(Long userId, UserEntity updatedUser) {
-        // Retrieve the existing user
         UserEntity existingUser = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // Update only the necessary fields
         existingUser.setEmail(updatedUser.getEmail());
-        existingUser.setRole(updatedUser.getRole());
         existingUser.setPhoneNumber(updatedUser.getPhoneNumber());
+        existingUser.setName(updatedUser.getName());
 
-        // Save and return the updated user
         return userRepository.save(existingUser);
     }
+
+    public void changePassword(String email, String oldPassword, String newPassword) {
+        // Find the user by email
+        UserEntity user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Verify old password
+        if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
+            throw new RuntimeException("Current password is incorrect");
+        }
+
+        // Encode and set new password
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+    }
+
     public void deleteUser(Long userId) {
         // Check if the user exists
         UserEntity user = userRepository.findById(userId)
