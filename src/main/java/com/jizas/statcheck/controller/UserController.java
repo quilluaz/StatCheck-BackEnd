@@ -2,6 +2,7 @@ package com.jizas.statcheck.controller;
 
 import com.jizas.statcheck.dto.LoginRequest;
 import com.jizas.statcheck.dto.SignupRequest;
+import com.jizas.statcheck.dto.PasswordChangeRequest;
 import com.jizas.statcheck.entity.UserEntity;
 import com.jizas.statcheck.service.UserService;
 import com.jizas.statcheck.util.JwtUtil;
@@ -243,6 +244,66 @@ public class UserController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("error", "Token refresh failed"));
+        }
+    }
+
+    @PostMapping("/change-password")
+    public ResponseEntity<?> changePassword(
+            @RequestBody PasswordChangeRequest request,
+            Authentication authentication
+    ) {
+        try {
+            // Validate password change request
+            if (!request.isValidPasswordChange()) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("error", "Invalid password change request"));
+            }
+
+            // Get current user's email from authentication
+            String email = authentication.getName();
+
+            // Attempt to change password
+            userService.changePassword(
+                    email,
+                    request.getOldPassword(),
+                    request.getNewPassword()
+            );
+
+            return ResponseEntity.ok(Map.of("message", "Password changed successfully"));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/user-profiles/update/{userId}")
+    public ResponseEntity<?> updateUserProfile(
+            @PathVariable Long userId,
+            @RequestBody UserEntity updatedUser,
+            Authentication authentication
+    ) {
+        try {
+            String email = authentication.getName();
+
+            UserEntity currentUser = userService.findByEmail(email);
+
+            if (!currentUser.getUserID().equals(userId)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(Map.of("error", "You can only update your own profile"));
+            }
+
+            // Explicitly set the role to the current user's role to prevent it from becoming null
+            updatedUser.setRole(currentUser.getRole());
+
+            UserEntity updatedProfile = userService.updateUser(userId, updatedUser);
+
+            // Remove sensitive information before returning
+            updatedProfile.setPassword(null);
+
+            return ResponseEntity.ok(updatedProfile);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", e.getMessage()));
         }
     }
 

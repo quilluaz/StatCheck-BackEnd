@@ -50,7 +50,7 @@ public class SecurityConfig {
                         "/api/auth/signup",
                         "/api/auth/verify-token"
                     ).permitAll()
-                    .requestMatchers("/api/auth/user-profiles/**").hasAnyRole("USER", "ADMIN")
+                    .requestMatchers("/api/auth/user-profiles/**", "/api/auth/change-password").hasAnyRole("USER", "ADMIN")
                     .requestMatchers("/api/admin/**").hasRole("ADMIN")
                     .anyRequest().authenticated()
                 )
