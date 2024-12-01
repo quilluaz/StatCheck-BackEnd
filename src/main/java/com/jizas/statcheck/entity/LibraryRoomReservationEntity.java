@@ -83,4 +83,12 @@ public class LibraryRoomReservationEntity {
     public void setLibraryRoomEntity(LibraryRoomEntity libraryRoomEntity) {
         this.libraryRoomEntity = libraryRoomEntity;
     }
+
+    public UserEntity getUserEntity() {
+        return userEntity;
+    }
+
+    public void setUserEntity(UserEntity userEntity) {
+        this.userEntity = userEntity;
+    }
 }

@@ -1,45 +1,58 @@
 package com.jizas.statcheck.entity;
 
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
-
-import java.sql.Time;
-import java.util.List;
+import java.time.LocalDateTime;
 
 @Entity
-@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "scheduleID")
 @Table(name = "schedule")
 public class ScheduleEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "schedule_id")
-    private Long scheduleID;
+    private Long scheduleId;
 
     @Column(name = "day_of_week")
     private String dayOfWeek;
 
-    @OneToMany(mappedBy = "scheduleEntity", cascade = CascadeType.ALL)
-    private List<TimeSlotEntity> timeslots;
+    @Column(name = "start_time")
+    private LocalDateTime startTime;
+
+    @Column(name = "end_time")
+    private LocalDateTime endTime;
 
     @ManyToOne
     @JoinColumn(name = "room_id", nullable = false)
+    @JsonIgnoreProperties({"schedules"})
     private RoomEntity roomEntity;
 
+    @ManyToOne
+    @JoinColumn(name = "subject_id", nullable = false)
+    @JsonIgnoreProperties({"schedules"})
+    private SubjectEntity subjectEntity;
+
+    // Default constructor
     public ScheduleEntity() {}
 
-    public ScheduleEntity(String dayOfWeek) {
+    // Constructor with fields
+    public ScheduleEntity(String dayOfWeek, LocalDateTime startTime, LocalDateTime endTime,
+                          RoomEntity roomEntity, SubjectEntity subjectEntity) {
         this.dayOfWeek = dayOfWeek;
+        this.startTime = startTime;
+        this.endTime = endTime;
+        this.roomEntity = roomEntity;
+        this.subjectEntity = subjectEntity;
     }
 
     // Getters and Setters
-    public Long getScheduleID() {
-        return scheduleID;
+    public Long getScheduleId() {
+        return scheduleId;
     }
 
-    public void setScheduleID(Long scheduleID) {
-        this.scheduleID = scheduleID;
+    public void setScheduleId(Long scheduleId) {
+        this.scheduleId = scheduleId;
     }
 
     public String getDayOfWeek() {
@@ -50,12 +63,20 @@ public class ScheduleEntity {
         this.dayOfWeek = dayOfWeek;
     }
 
-    public List<TimeSlotEntity> getTimeslots() {
-        return timeslots;
+    public LocalDateTime getStartTime() {
+        return startTime;
     }
 
-    public void setTimeslots(List<TimeSlotEntity> timeslots) {
-        this.timeslots = timeslots;
+    public void setStartTime(LocalDateTime startTime) {
+        this.startTime = startTime;
+    }
+
+    public LocalDateTime getEndTime() {
+        return endTime;
+    }
+
+    public void setEndTime(LocalDateTime endTime) {
+        this.endTime = endTime;
     }
 
     public RoomEntity getRoomEntity() {
@@ -64,5 +85,13 @@ public class ScheduleEntity {
 
     public void setRoomEntity(RoomEntity roomEntity) {
         this.roomEntity = roomEntity;
+    }
+
+    public SubjectEntity getSubjectEntity() {
+        return subjectEntity;
+    }
+
+    public void setSubjectEntity(SubjectEntity subjectEntity) {
+        this.subjectEntity = subjectEntity;
     }
 }

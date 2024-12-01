@@ -1,8 +1,10 @@
 package com.jizas.statcheck.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
-
+import jakarta.validation.constraints.NotBlank;
 import java.util.List;
+import java.util.ArrayList;
 
 @Entity
 @Table(name = "subject")
@@ -11,9 +13,10 @@ public class SubjectEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "subject_id")
-    private Long subjectID;
+    private Long subjectId;
 
-    @Column(name = "subject_name")
+    @NotBlank(message = "Subject name must not be empty")
+    @Column(name = "subject_name", nullable = false)
     private String subjectName;
 
     @Column(name = "section")
@@ -23,12 +26,11 @@ public class SubjectEntity {
     private String instructor;
 
     @OneToMany(mappedBy = "subjectEntity", cascade = CascadeType.ALL)
-    private List<TimeSlotEntity> timeslots;
+    @JsonIgnoreProperties({"subjectEntity"})
+    private List<ScheduleEntity> schedules = new ArrayList<>();
 
-    // Default constructor
     public SubjectEntity() {}
 
-    // Constructor with fields
     public SubjectEntity(String subjectName, String section, String instructor) {
         this.subjectName = subjectName;
         this.section = section;
@@ -36,12 +38,12 @@ public class SubjectEntity {
     }
 
     // Getters and Setters
-    public Long getSubjectID() {
-        return subjectID;
+    public Long getSubjectId() {
+        return subjectId;
     }
 
-    public void setSubjectID(Long subjectID) {
-        this.subjectID = subjectID;
+    public void setSubjectId(Long subjectId) {
+        this.subjectId = subjectId;
     }
 
     public String getSubjectName() {
@@ -68,11 +70,11 @@ public class SubjectEntity {
         this.instructor = instructor;
     }
 
-    public List<TimeSlotEntity> getTimeslots() {
-        return timeslots;
+    public List<ScheduleEntity> getSchedules() {
+        return schedules;
     }
 
-    public void setTimeslots(List<TimeSlotEntity> timeslots) {
-        this.timeslots = timeslots;
+    public void setSchedules(List<ScheduleEntity> schedules) {
+        this.schedules = schedules;
     }
 }

@@ -2,10 +2,13 @@ package com.jizas.statcheck.service;
 
 import com.jizas.statcheck.entity.LibraryRoomEntity;
 import com.jizas.statcheck.entity.LibraryRoomReservationEntity;
+import com.jizas.statcheck.entity.UserEntity;
 import com.jizas.statcheck.repository.LibraryRoomRepository;
 import com.jizas.statcheck.repository.LibraryRoomReservationRepository;
+import com.jizas.statcheck.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -18,34 +21,23 @@ public class LibraryRoomReservationService {
     private LibraryRoomReservationRepository libraryRoomReservationRepository;
 
     @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
     private LibraryRoomRepository libraryRoomRepository;
 
-    // Method to create a new room reservation and update the status of the room
+    @Transactional
     public LibraryRoomReservationEntity createReservation(LibraryRoomReservationEntity reservation) {
-        // Check if reservation time overlaps with existing reservation
-        Optional<LibraryRoomEntity> roomOpt = libraryRoomRepository.findById(reservation.getLibraryRoomEntity().getLibraryRoomID());
-        if (roomOpt.isPresent()) {
-            LibraryRoomEntity room = roomOpt.get();
+        // Fetch and set the actual entities
+        UserEntity user = userRepository.findById(reservation.getUserEntity().getUserID())
+            .orElseThrow(() -> new RuntimeException("User not found"));
+        LibraryRoomEntity room = libraryRoomRepository.findById(reservation.getLibraryRoomEntity().getLibraryRoomID())
+            .orElseThrow(() -> new RuntimeException("Library room not found"));
 
-            // Check if the time is within the reservation period
-            LocalDateTime startTime = reservation.getStartTime();
-            LocalDateTime endTime = reservation.getEndTime();
+        reservation.setUserEntity(user);
+        reservation.setLibraryRoomEntity(room);
 
-            // Set the status based on whether the room is reserved during the requested time
-            if (isRoomAvailable(room, startTime, endTime)) {
-                reservation.setStatus("Occupied");
-                room.setStatus("Occupied");
-            } else {
-                reservation.setStatus("Available");
-                room.setStatus("Available");
-            }
-
-            // Save the reservation and update the room status
-            libraryRoomReservationRepository.save(reservation);
-            libraryRoomRepository.save(room);
-            return reservation;
-        }
-        return null;
+        return libraryRoomReservationRepository.save(reservation);
     }
 
     // Method to check if the room is available
@@ -63,5 +55,33 @@ public class LibraryRoomReservationService {
     public LibraryRoomReservationEntity getReservationById(Long id) {
         Optional<LibraryRoomReservationEntity> reservation = libraryRoomReservationRepository.findById(id);
         return reservation.orElse(null);  // Returns null if the reservation doesn't exist
+    }
+
+    @Transactional
+    public LibraryRoomReservationEntity updateReservation(Long id, LibraryRoomReservationEntity updatedReservation) {
+        LibraryRoomReservationEntity existingReservation = libraryRoomReservationRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Reservation not found with id: " + id));
+
+        // Fetch and set the actual entities
+        UserEntity user = userRepository.findById(updatedReservation.getUserEntity().getUserID())
+            .orElseThrow(() -> new RuntimeException("User not found"));
+        LibraryRoomEntity room = libraryRoomRepository.findById(updatedReservation.getLibraryRoomEntity().getLibraryRoomID())
+            .orElseThrow(() -> new RuntimeException("Library room not found"));
+
+        existingReservation.setUserEntity(user);
+        existingReservation.setLibraryRoomEntity(room);
+        existingReservation.setStartTime(updatedReservation.getStartTime());
+        existingReservation.setEndTime(updatedReservation.getEndTime());
+        existingReservation.setStatus(updatedReservation.getStatus());
+
+        return libraryRoomReservationRepository.save(existingReservation);
+    }
+
+    @Transactional
+    public void deleteReservation(Long id) {
+        if (!libraryRoomReservationRepository.existsById(id)) {
+            throw new RuntimeException("Reservation not found with id: " + id);
+        }
+        libraryRoomReservationRepository.deleteById(id);
     }
 }

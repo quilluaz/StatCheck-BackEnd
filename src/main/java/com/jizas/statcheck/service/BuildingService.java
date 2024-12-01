@@ -40,7 +40,7 @@ public class BuildingService {
         Optional<BuildingEntity> existingBuilding = buildingRepository.findById(bldgID);
         if (existingBuilding.isPresent()) {
             BuildingEntity updatedBuilding = existingBuilding.get();
-            updatedBuilding.setBuildingID(buildingEntity.getBuildingID());
+            updatedBuilding.setBuildingName(buildingEntity.getBuildingName());
             updatedBuilding.setFloors(buildingEntity.getFloors());
             return buildingRepository.save(updatedBuilding);
         }

@@ -1,20 +1,18 @@
 package com.jizas.statcheck.entity;
 
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
-import com.jizas.statcheck.entity.BuildingEntity;
 import jakarta.persistence.*;
+import java.util.List;
 
 @Entity
 @Table(name = "room")
-@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "roomID")
 public class RoomEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "room_id")
-    private Long roomID;
+    private Long roomId;
 
     @Column(name = "room_type", nullable = false)
     private String roomType;
@@ -28,17 +26,22 @@ public class RoomEntity {
     @Column(name = "availability_status", nullable = false)
     private String availabilityStatus;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "building_id", nullable = false)
-    @JsonIgnoreProperties({"floors", "rooms"})
+    @JsonIgnoreProperties({"rooms", "hibernateLazyInitializer"})
     private BuildingEntity building;
 
     @Column(name = "floor", nullable = false)
     private int floorNumber;
 
+    @OneToMany(mappedBy = "roomEntity", cascade = CascadeType.ALL)
+    @JsonIgnoreProperties({"roomEntity"})
+    private List<ScheduleEntity> schedules;
+
     public RoomEntity() {}
 
-    public RoomEntity(String roomType, int capacity, int currentCapacity, String availabilityStatus, BuildingEntity building, int floorNumber) {
+    public RoomEntity(String roomType, int capacity, int currentCapacity, String availabilityStatus,
+                      BuildingEntity building, int floorNumber) {
         this.roomType = roomType;
         this.capacity = capacity;
         this.currentCapacity = currentCapacity;
@@ -48,12 +51,12 @@ public class RoomEntity {
     }
 
     // Getters and setters
-    public Long getRoomID() {
-        return roomID;
+    public Long getRoomId() {
+        return roomId;
     }
 
-    public void setRoomID(Long roomID) {
-        this.roomID = roomID;
+    public void setRoomId(Long roomId) {
+        this.roomId = roomId;
     }
 
     public String getRoomType() {
@@ -102,5 +105,13 @@ public class RoomEntity {
 
     public void setFloorNumber(int floorNumber) {
         this.floorNumber = floorNumber;
+    }
+
+    public List<ScheduleEntity> getSchedules() {
+        return schedules;
+    }
+
+    public void setSchedules(List<ScheduleEntity> schedules) {
+        this.schedules = schedules;
     }
 }

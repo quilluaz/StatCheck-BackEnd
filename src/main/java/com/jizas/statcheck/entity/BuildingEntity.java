@@ -2,11 +2,14 @@ package com.jizas.statcheck.entity;
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Min;
 import jakarta.persistence.*;
 
 import java.util.List;
+import java.util.ArrayList;
 
 @Entity
 @Table(name = "building")
@@ -26,8 +29,9 @@ public class BuildingEntity {
     @Column(name = "floors", nullable = false)
     private int floors = 1;
 
-    @OneToMany(mappedBy = "building", cascade = CascadeType.ALL)
-    private List<RoomEntity> rooms;
+    @OneToMany(mappedBy = "building", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnoreProperties({"building", "hibernateLazyInitializer"})
+    private List<RoomEntity> rooms = new ArrayList<>();
 
     // Default constructor
     public BuildingEntity() {}
