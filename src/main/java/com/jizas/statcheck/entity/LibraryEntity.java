@@ -1,5 +1,8 @@
 package com.jizas.statcheck.entity;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,6 +23,7 @@ public class LibraryEntity {
 
     // One-to-many relationship with LibraryRoomEntity
     @OneToMany(mappedBy = "library", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
     private List<LibraryRoomEntity> libraryRooms = new ArrayList<>();
 
     // Getters and Setters
@@ -61,7 +65,7 @@ public class LibraryEntity {
         libraryRooms.clear(); // Clear existing rooms to avoid duplication
         for (int i = 1; i <= rooms; i++) {
             LibraryRoomEntity room = new LibraryRoomEntity();
-            room.setLibraryRoomName("Room " + i); // Set a default name for each room
+            room.setRoomName("Room " + i); // Changed from setLibraryRoomName to setRoomName
             room.setStatus("Available"); // Default status
             room.setLibrary(this); // Associate the room with the library
             libraryRooms.add(room);

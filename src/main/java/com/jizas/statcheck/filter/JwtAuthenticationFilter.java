@@ -34,36 +34,55 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
         try {
+            logger.debug("Processing request to: " + request.getRequestURI());
+            logger.debug("Request method: " + request.getMethod());
+            
+            // Log all headers
+            java.util.Enumeration<String> headerNames = request.getHeaderNames();
+            while (headerNames.hasMoreElements()) {
+                String headerName = headerNames.nextElement();
+                logger.debug("Header: " + headerName + " = " + request.getHeader(headerName));
+            }
+
             // Get token from cookie
             Cookie[] cookies = request.getCookies();
             String token = null;
             if (cookies != null) {
+                logger.debug("Found " + cookies.length + " cookies");
                 for (Cookie cookie : cookies) {
+                    logger.debug("Cookie: " + cookie.getName() + " = " + (cookie.getValue() != null ? cookie.getValue().substring(0, Math.min(10, cookie.getValue().length())) + "..." : "null"));
                     if ("accessToken".equals(cookie.getName())) {
                         token = cookie.getValue();
-                        break;
+                        logger.debug("Found access token in cookie");
                     }
                 }
+            } else {
+                logger.debug("No cookies found in request");
             }
 
-            if (token != null && jwtUtil.validateToken(token)) {
-                String email = jwtUtil.extractEmail(token);
-                UserDetails userDetails = userDetailsService.loadUserByUsername(email);
-                
-                UsernamePasswordAuthenticationToken authentication = 
-                    new UsernamePasswordAuthenticationToken(
-                        userDetails,
-                        null,
-                        userDetails.getAuthorities()
-                    );
-                
-                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-                
-                // Add debug logging
-                logger.debug("Set authentication for user: " + email);
-                logger.debug("Authorities: " + userDetails.getAuthorities());
+            if (token != null) {
+                logger.debug("Validating token...");
+                if (jwtUtil.validateToken(token)) {
+                    String email = jwtUtil.extractEmail(token);
+                    String role = jwtUtil.extractRole(token);
+                    logger.debug("Token valid for user: " + email + " with role: " + role);
+                    
+                    UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+                    logger.debug("User authorities: " + userDetails.getAuthorities());
+                    
+                    UsernamePasswordAuthenticationToken authentication = 
+                        new UsernamePasswordAuthenticationToken(
+                            userDetails,
+                            null,
+                            userDetails.getAuthorities()
+                        );
+                    
+                    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                    logger.debug("Authentication set in SecurityContext");
+                } else {
+                    logger.debug("Token validation failed");
+                }
             }
 
             filterChain.doFilter(request, response);

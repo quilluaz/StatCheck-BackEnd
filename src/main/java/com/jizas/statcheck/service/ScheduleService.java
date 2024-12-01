@@ -11,37 +11,48 @@ import java.util.Optional;
 @Service
 public class ScheduleService {
 
-    @Autowired
-    private ScheduleRepository scheduleRepository;
+    private final ScheduleRepository scheduleRepository;
 
-    // Get all schedules
+    @Autowired
+    public ScheduleService(ScheduleRepository scheduleRepository) {
+        this.scheduleRepository = scheduleRepository;
+    }
+
     public List<ScheduleEntity> getAllSchedules() {
         return scheduleRepository.findAll();
     }
 
-    // Get schedule by ID
-    public Optional<ScheduleEntity> getScheduleById(Long scheduleID) {
-        return scheduleRepository.findById(scheduleID);
+    public Optional<ScheduleEntity> getScheduleById(Long scheduleId) {
+        return scheduleRepository.findById(scheduleId);
     }
 
-    // Create a new schedule
-    public ScheduleEntity createSchedule(ScheduleEntity scheduleEntity) {
+    public ScheduleEntity saveSchedule(ScheduleEntity scheduleEntity) {
         return scheduleRepository.save(scheduleEntity);
     }
 
-    // Update an existing schedule
-    public ScheduleEntity updateSchedule(Long scheduleID, ScheduleEntity scheduleEntity) {
-        Optional<ScheduleEntity> existingSchedule = scheduleRepository.findById(scheduleID);
+    public ScheduleEntity updateSchedule(Long scheduleId, ScheduleEntity scheduleEntity) {
+        Optional<ScheduleEntity> existingSchedule = scheduleRepository.findById(scheduleId);
         if (existingSchedule.isPresent()) {
             ScheduleEntity updatedSchedule = existingSchedule.get();
             updatedSchedule.setDayOfWeek(scheduleEntity.getDayOfWeek());
+            updatedSchedule.setStartTime(scheduleEntity.getStartTime());
+            updatedSchedule.setEndTime(scheduleEntity.getEndTime());
+            updatedSchedule.setRoomEntity(scheduleEntity.getRoomEntity());
+            updatedSchedule.setSubjectEntity(scheduleEntity.getSubjectEntity());
             return scheduleRepository.save(updatedSchedule);
         }
         return null;
     }
 
-    // Delete a schedule
-    public void deleteSchedule(Long scheduleID) {
-        scheduleRepository.deleteById(scheduleID);
+    public void deleteSchedule(Long scheduleId) {
+        scheduleRepository.deleteById(scheduleId);
+    }
+
+    public List<ScheduleEntity> findByDayOfWeek(String dayOfWeek) {
+        return scheduleRepository.findByDayOfWeek(dayOfWeek);
+    }
+
+    public List<ScheduleEntity> findByRoomEntity_RoomId(Long roomId) {
+        return scheduleRepository.findByRoomEntity_RoomId(roomId);
     }
 }

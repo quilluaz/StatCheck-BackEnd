@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/rooms")
+@RequestMapping("/api/admin/rooms")
 public class RoomController {
 
     private final RoomService roomService;
@@ -50,7 +50,7 @@ public class RoomController {
     public ResponseEntity<RoomEntity> updateRoom(@PathVariable("id") Long roomID, @RequestBody RoomEntity roomEntity) {
         Optional<RoomEntity> existingRoom = roomService.getRoomById(roomID);
         if (existingRoom.isPresent()) {
-            roomEntity.setRoomID(roomID);
+            roomEntity.setRoomId(roomID);
             RoomEntity updatedRoom = roomService.saveRoom(roomEntity);
             return ResponseEntity.ok(updatedRoom);
         } else {

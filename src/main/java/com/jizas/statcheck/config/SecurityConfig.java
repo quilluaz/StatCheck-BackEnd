@@ -12,6 +12,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -29,6 +30,7 @@ import static org.springframework.security.config.Customizer.withDefaults;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 public class SecurityConfig {
     @Autowired
     private JwtUtil jwtUtil;
@@ -50,22 +52,22 @@ public class SecurityConfig {
                         "/api/auth/signup",
                         "/api/auth/verify-token"
                     ).permitAll()
-                    .requestMatchers("/api/auth/user-profiles/**", "/api/auth/change-password").hasAnyRole("USER", "ADMIN")
-                    .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                    .requestMatchers("/api/admin/**").authenticated()
+                    .requestMatchers("/api/admin/subjects/**").hasRole("ADMIN")
+                    .requestMatchers("/api/admin/rooms/**").hasRole("ADMIN")
+                    .requestMatchers("/api/admin/schedules/**").hasRole("ADMIN")
+                    .requestMatchers("/api/admin/library-rooms/**").hasRole("ADMIN")
+                    .requestMatchers("/api/admin/library-reservations/**").hasRole("ADMIN")
+                    .requestMatchers("/api/admin/libraries/**").hasRole("ADMIN")
+                    .requestMatchers("/api/admin/parking-lots/**").hasRole("ADMIN")
+                    .requestMatchers("/api/admin/parking-spaces/**").hasRole("ADMIN")
+                    .requestMatchers("/api/admin/parking-reservations/**").hasRole("ADMIN")
+                    .requestMatchers("/api/admin/analytics/**").hasRole("ADMIN")
+                    .requestMatchers("/api/admin/users/**").hasRole("ADMIN")
                     .anyRequest().authenticated()
                 )
                 .addFilterBefore(new JwtAuthenticationFilter(jwtUtil, customUserDetailsService), 
-                    UsernamePasswordAuthenticationFilter.class)
-                .exceptionHandling(handling -> handling
-                    .authenticationEntryPoint((request, response, authException) -> {
-                        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                        response.getWriter().write("Unauthorized: " + authException.getMessage());
-                    })
-                    .accessDeniedHandler((request, response, accessDeniedException) -> {
-                        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                        response.getWriter().write("Access Denied: " + accessDeniedException.getMessage());
-                    })
-                );
+                    UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

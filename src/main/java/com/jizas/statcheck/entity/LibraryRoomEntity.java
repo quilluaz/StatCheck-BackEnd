@@ -1,35 +1,42 @@
 package com.jizas.statcheck.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
-
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "libraryRoomID")
+@Table(name = "library_room_entity")
 public class LibraryRoomEntity {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "library_room_id")
     private Long libraryRoomID;
 
-    @Column(name = "library_room_name")
-    private String libraryRoomName;
+    @Column(name = "room_name")
+    private String roomName;
 
     @Column(name = "status")
     private String status;
 
-    // Many-to-one relationship with LibraryEntity
     @ManyToOne
-    @JoinColumn(name = "library_id")
-    @JsonIgnoreProperties({"libraryID", "rooms", "libraryRooms"})
+    @JoinColumn(name = "library_id", nullable = false)
+    @JsonBackReference
     private LibraryEntity library;
 
-    @OneToMany(mappedBy = "libraryRoomEntity", cascade = CascadeType.ALL)
-    private List<LibraryRoomReservationEntity> reservations;
+    @ElementCollection
+    @CollectionTable(
+        name = "library_room_time_slots",
+        joinColumns = @JoinColumn(
+            name = "library_room_id",
+            referencedColumnName = "library_room_id"
+        )
+    )
+    @Column(name = "time_slot")
+    private List<String> availableTimeSlots = new ArrayList<>();
+
     // Getters and Setters
     public Long getLibraryRoomID() {
         return libraryRoomID;
@@ -39,12 +46,12 @@ public class LibraryRoomEntity {
         this.libraryRoomID = libraryRoomID;
     }
 
-    public String getLibraryRoomName() {
-        return libraryRoomName;
+    public String getRoomName() {
+        return roomName;
     }
 
-    public void setLibraryRoomName(String libraryRoomName) {
-        this.libraryRoomName = libraryRoomName;
+    public void setRoomName(String roomName) {
+        this.roomName = roomName;
     }
 
     public String getStatus() {
@@ -63,12 +70,16 @@ public class LibraryRoomEntity {
         this.library = library;
     }
 
-    public List<LibraryRoomReservationEntity> getReservations() {
-        return reservations;
+    public List<String> getAvailableTimeSlots() {
+        return availableTimeSlots;
     }
 
-    public void setReservations(List<LibraryRoomReservationEntity> reservations) {
-        this.reservations = reservations;
+    public void setAvailableTimeSlots(List<String> availableTimeSlots) {
+        this.availableTimeSlots = availableTimeSlots;
+    }
+
+    public String getLibraryName() {
+        return library != null ? library.getLibraryName() : null;
     }
 }
 

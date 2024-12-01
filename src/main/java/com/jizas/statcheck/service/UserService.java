@@ -62,6 +62,17 @@ public class UserService {
         return userRepository.findAll();
     }
 
+    public UserEntity updateUserProfile(Long userId, UserEntity updatedUser) {
+        UserEntity existingUser = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        existingUser.setEmail(updatedUser.getEmail());
+        existingUser.setPhoneNumber(updatedUser.getPhoneNumber());
+        existingUser.setName(updatedUser.getName());
+
+        return userRepository.save(existingUser);
+    }
+
     public UserEntity updateUser(Long userId, UserEntity updatedUser) {
         UserEntity existingUser = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -69,6 +80,7 @@ public class UserService {
         existingUser.setEmail(updatedUser.getEmail());
         existingUser.setPhoneNumber(updatedUser.getPhoneNumber());
         existingUser.setName(updatedUser.getName());
+        existingUser.setRole(updatedUser.getRole().toUpperCase());
 
         return userRepository.save(existingUser);
     }

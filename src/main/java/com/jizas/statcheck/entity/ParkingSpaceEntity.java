@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "parkingSpaceId")
+@Table(name = "parking_space_entity")
 public class ParkingSpaceEntity {
 
     @Id
@@ -19,11 +19,12 @@ public class ParkingSpaceEntity {
     private String spaceType;
 
     @ManyToOne
-    @JoinColumn(name = "parkingLotId", nullable = false) // camelCase for column names
-    @JsonIgnoreProperties({"parkingSpaces"})
+    @JoinColumn(name = "parking_lot_id")
+    @JsonBackReference
     private ParkingLotEntity parkingLot;
 
-    @OneToMany(mappedBy = "parkingSpace", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "parkingSpaceEntity", cascade = CascadeType.ALL)
+    @JsonIgnoreProperties("parkingSpaceEntity")
     private List<ParkingReservationEntity> reservations = new ArrayList<>();
 
     public ParkingSpaceEntity() {
@@ -77,8 +78,16 @@ public class ParkingSpaceEntity {
         this.reservations = reservations;
     }
 
-    // Lazy status calculation: only update when status is accessed
     public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    // Lazy status calculation: only update when status is accessed
+    public String getAvailability() {
         if (this.status == null) { // Status hasn't been set yet, calculate it
             updateStatus();
         }
@@ -101,5 +110,9 @@ public class ParkingSpaceEntity {
 
         // Set the status based on whether the space is reserved or not
         this.status = isReserved ? "reserved" : "available";
+    }
+
+    public void setAvailability(String availability) {
+        this.status = availability;
     }
 }

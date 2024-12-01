@@ -29,7 +29,6 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 @RestController
-@RequestMapping("/api/auth")
 public class UserController {
 
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
@@ -46,7 +45,7 @@ public class UserController {
         this.cookieUtil = cookieUtil;
     }
 
-    @PostMapping("/login")
+    @PostMapping("/api/auth/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request, HttpServletResponse response) {
         try {
             Authentication authentication = authenticationManager.authenticate(
@@ -101,7 +100,7 @@ public class UserController {
         }
     }
 
-    @PostMapping("/signup")
+    @PostMapping("/api/auth/signup")
     public ResponseEntity<?> signup(@RequestBody SignupRequest request) {
         try {
             UserEntity user = new UserEntity();
@@ -123,7 +122,7 @@ public class UserController {
         }
     }
 
-    @GetMapping("/user-profiles/current")
+    @GetMapping("/api/auth/user-profiles/current")
     public ResponseEntity<UserEntity> getCurrentUserProfile(Authentication authentication) {
         String email = authentication.getName();
         UserEntity user = userService.findByEmail(email);
@@ -138,7 +137,7 @@ public class UserController {
         return ResponseEntity.ok(user);
     }
 
-    @GetMapping("/verify-token")
+    @GetMapping("/api/auth/verify-token")
     public ResponseEntity<?> verifyToken(HttpServletRequest request) {
         try {
             Cookie[] cookies = request.getCookies();
@@ -213,7 +212,7 @@ public class UserController {
         }
     }
 
-    @PostMapping("/refresh-token")
+    @PostMapping("/api/auth/refresh-token")
     public ResponseEntity<?> refreshToken(
             @CookieValue(name = "refreshToken", required = false) String refreshToken,
             HttpServletResponse response) {
@@ -247,7 +246,7 @@ public class UserController {
         }
     }
 
-    @PostMapping("/change-password")
+    @PostMapping("/api/auth/change-password")
     public ResponseEntity<?> changePassword(
             @RequestBody PasswordChangeRequest request,
             Authentication authentication
@@ -276,7 +275,7 @@ public class UserController {
         }
     }
 
-    @PostMapping("/user-profiles/update/{userId}")
+    @PostMapping("/api/auth/user-profiles/update/{userId}")
     public ResponseEntity<?> updateUserProfile(
             @PathVariable Long userId,
             @RequestBody UserEntity updatedUser,
@@ -284,7 +283,6 @@ public class UserController {
     ) {
         try {
             String email = authentication.getName();
-
             UserEntity currentUser = userService.findByEmail(email);
 
             if (!currentUser.getUserID().equals(userId)) {
@@ -292,14 +290,8 @@ public class UserController {
                         .body(Map.of("error", "You can only update your own profile"));
             }
 
-            // Explicitly set the role to the current user's role to prevent it from becoming null
-            updatedUser.setRole(currentUser.getRole());
-
-            UserEntity updatedProfile = userService.updateUser(userId, updatedUser);
-
-            // Remove sensitive information before returning
-            updatedProfile.setPassword(null);
-
+            UserEntity updatedProfile = userService.updateUserProfile(userId, updatedUser);
+            updatedProfile.setPassword(null); // Remove sensitive information
             return ResponseEntity.ok(updatedProfile);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -307,7 +299,7 @@ public class UserController {
         }
     }
 
-    @PostMapping("/logout")
+    @PostMapping("/api/auth/logout")
     public ResponseEntity<?> logout(HttpServletResponse response) {
         // Invalidate the refresh token by clearing the cookie
         Cookie accessTokenCookie = new Cookie("accessToken", null);
@@ -326,5 +318,34 @@ public class UserController {
         response.addCookie(refreshTokenCookie);
 
         return ResponseEntity.ok(Map.of("message", "Logged out successfully"));
+    }
+
+    @GetMapping("/api/admin/users")
+    public ResponseEntity<List<UserEntity>> getAllUsers() {
+        List<UserEntity> users = userService.getAllUsers();
+        users.forEach(user -> user.setPassword(null));
+        return ResponseEntity.ok(users);
+    }
+
+    @PostMapping("/api/admin/users")
+    public ResponseEntity<UserEntity> createUser(@RequestBody UserEntity user) {
+        UserEntity newUser = userService.registerUser(user);
+        newUser.setPassword(null);
+        return ResponseEntity.ok(newUser);
+    }
+
+    @PutMapping("/api/admin/users/{userId}")
+    public ResponseEntity<UserEntity> updateUser(
+            @PathVariable Long userId,
+            @RequestBody UserEntity updatedUser) {
+        UserEntity user = userService.updateUser(userId, updatedUser);
+        user.setPassword(null); // Remove sensitive information
+        return ResponseEntity.ok(user);
+    }
+
+    @DeleteMapping("/api/admin/users/{userId}")
+    public ResponseEntity<Void> deleteUser(@PathVariable Long userId) {
+        userService.deleteUser(userId);
+        return ResponseEntity.ok().build();
     }
 }

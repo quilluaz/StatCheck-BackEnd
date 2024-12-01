@@ -1,44 +1,51 @@
 package com.jizas.statcheck.entity;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonFormat;
-
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
-@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "reservationID")
+@Table(name = "parking_reservation")
 public class ParkingReservationEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "reservation_id")
     private Long reservationID;
 
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+    @Column(name = "start_time")
     private LocalDateTime startTime;
 
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+    @Column(name = "end_time")
     private LocalDateTime endTime;
 
-    private String reservationStatus; // Renamed from status to reservationStatus
+    @Column(name = "status")
+    private String status;
 
-    @ManyToOne
-    @JoinColumn(name = "parkingSpaceID", nullable = false)
-    private ParkingSpaceEntity parkingSpace;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parking_space_id")
+    @JsonIgnoreProperties({"reservations", "hibernateLazyInitializer"})
+    private ParkingSpaceEntity parkingSpaceEntity;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    @JsonIgnoreProperties({"reservations", "password", "hibernateLazyInitializer"})
     private UserEntity userEntity;
-    public ParkingReservationEntity() {
-    }
 
-    public ParkingReservationEntity(LocalDateTime startTime, LocalDateTime endTime, String reservationStatus, ParkingSpaceEntity parkingSpace) {
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parking_lot_id")
+    @JsonIgnoreProperties({"parkingSpaces", "hibernateLazyInitializer"})
+    private ParkingLotEntity parkingLotEntity;
+
+    // Default constructor
+    public ParkingReservationEntity() {}
+
+    // Constructor with fields
+    public ParkingReservationEntity(LocalDateTime startTime, LocalDateTime endTime, String status, ParkingSpaceEntity parkingSpaceEntity) {
         this.startTime = startTime;
         this.endTime = endTime;
-        this.reservationStatus = reservationStatus;
-        this.parkingSpace = parkingSpace;
+        this.status = status;
+        this.parkingSpaceEntity = parkingSpaceEntity;
     }
 
     // Getters and Setters
@@ -66,20 +73,20 @@ public class ParkingReservationEntity {
         this.endTime = endTime;
     }
 
-    public String getReservationStatus() {
-        return reservationStatus;
+    public String getStatus() {
+        return status;
     }
 
-    public void setReservationStatus(String reservationStatus) {
-        this.reservationStatus = reservationStatus;
+    public void setStatus(String status) {
+        this.status = status;
     }
 
-    public ParkingSpaceEntity getParkingSpace() {
-        return parkingSpace;
+    public ParkingSpaceEntity getParkingSpaceEntity() {
+        return parkingSpaceEntity;
     }
 
-    public void setParkingSpace(ParkingSpaceEntity parkingSpace) {
-        this.parkingSpace = parkingSpace;
+    public void setParkingSpaceEntity(ParkingSpaceEntity parkingSpaceEntity) {
+        this.parkingSpaceEntity = parkingSpaceEntity;
     }
 
     public UserEntity getUserEntity() {
@@ -88,5 +95,13 @@ public class ParkingReservationEntity {
 
     public void setUserEntity(UserEntity userEntity) {
         this.userEntity = userEntity;
+    }
+
+    public ParkingLotEntity getParkingLotEntity() {
+        return parkingLotEntity;
+    }
+
+    public void setParkingLotEntity(ParkingLotEntity parkingLotEntity) {
+        this.parkingLotEntity = parkingLotEntity;
     }
 }

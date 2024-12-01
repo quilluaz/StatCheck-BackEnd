@@ -1,34 +1,33 @@
 package com.jizas.statcheck.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
-
 @Entity
+@Table(name = "parking_lot")
 public class ParkingLotEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "parkingLotID")
     private Long parkingLotID;
 
+    @Column(name = "parkingLotName")
     private String parkingLotName;
 
-    private int spaces; // New field to define the number of parking spaces
+    @Column(name = "spaces")
+    private int spaces;
 
     @OneToMany(mappedBy = "parkingLot", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
     private List<ParkingSpaceEntity> parkingSpaces = new ArrayList<>();
 
-    public ParkingLotEntity() {
-    }
-
-    public ParkingLotEntity(String parkingLotName, int spaces) {
-        this.parkingLotName = parkingLotName;
-        this.spaces = spaces;
-        initializeParkingSpaces();
-    }
-
+    // Getters and Setters
     public Long getParkingLotID() {
         return parkingLotID;
     }
@@ -51,7 +50,6 @@ public class ParkingLotEntity {
 
     public void setSpaces(int spaces) {
         this.spaces = spaces;
-        initializeParkingSpaces();
     }
 
     public List<ParkingSpaceEntity> getParkingSpaces() {
@@ -60,17 +58,6 @@ public class ParkingLotEntity {
 
     public void setParkingSpaces(List<ParkingSpaceEntity> parkingSpaces) {
         this.parkingSpaces = parkingSpaces;
-    }
-
-    // Initialize parking spaces based on the spaces count
-    private void initializeParkingSpaces() {
-        parkingSpaces.clear();
-        for (int i = 1; i <= spaces; i++) {
-            // Alternate between 'motor' and 'car' for demo purposes
-            String spaceType = (i % 2 == 0) ? "car" : "motor";
-            ParkingSpaceEntity space = new ParkingSpaceEntity("Space " + i, "available", spaceType, this);
-            parkingSpaces.add(space);
-        }
     }
 
 }
