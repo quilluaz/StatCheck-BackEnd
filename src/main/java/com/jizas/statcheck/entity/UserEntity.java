@@ -1,6 +1,10 @@
 package com.jizas.statcheck.entity;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 
 @Entity
 public class UserEntity {
@@ -22,6 +26,16 @@ public class UserEntity {
 
     @Column(nullable = false)
     private String name;
+
+    // Social Media Links
+    @Column
+    private String socialMediaFacebook;
+
+    @Column
+    private String socialMediaInstagram;
+
+    @Column
+    private String socialMediaTwitter;
 
     // Getters and setters
     public Long getUserID() {
@@ -70,5 +84,29 @@ public class UserEntity {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getSocialMediaFacebook() {
+        return socialMediaFacebook;
+    }
+
+    public void setSocialMediaFacebook(String socialMediaFacebook) {
+        this.socialMediaFacebook = socialMediaFacebook;
+    }
+
+    public String getSocialMediaInstagram() {
+        return socialMediaInstagram;
+    }
+
+    public void setSocialMediaInstagram(String socialMediaInstagram) {
+        this.socialMediaInstagram = socialMediaInstagram;
+    }
+
+    public String getSocialMediaTwitter() {
+        return socialMediaTwitter;
+    }
+
+    public void setSocialMediaTwitter(String socialMediaTwitter) {
+        this.socialMediaTwitter = socialMediaTwitter;
     }
 }
