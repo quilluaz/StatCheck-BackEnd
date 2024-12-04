@@ -69,6 +69,9 @@ public class UserService {
         existingUser.setEmail(updatedUser.getEmail());
         existingUser.setPhoneNumber(updatedUser.getPhoneNumber());
         existingUser.setName(updatedUser.getName());
+        existingUser.setSocialMediaFacebook(updatedUser.getSocialMediaFacebook());
+        existingUser.setSocialMediaInstagram(updatedUser.getSocialMediaInstagram());
+        existingUser.setSocialMediaTwitter(updatedUser.getSocialMediaTwitter());
 
         return userRepository.save(existingUser);
     }
@@ -81,6 +84,9 @@ public class UserService {
         existingUser.setPhoneNumber(updatedUser.getPhoneNumber());
         existingUser.setName(updatedUser.getName());
         existingUser.setRole(updatedUser.getRole().toUpperCase());
+        existingUser.setSocialMediaFacebook(updatedUser.getSocialMediaFacebook());
+        existingUser.setSocialMediaInstagram(updatedUser.getSocialMediaInstagram());
+        existingUser.setSocialMediaTwitter(updatedUser.getSocialMediaTwitter());
 
         return userRepository.save(existingUser);
     }

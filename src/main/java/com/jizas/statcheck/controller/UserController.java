@@ -109,6 +109,9 @@ public class UserController {
             user.setPhoneNumber(request.getPhone());
             user.setName(request.getName());
             user.setRole("USER");
+            user.setSocialMediaFacebook(request.getSocialMediaFacebook());
+            user.setSocialMediaInstagram(request.getSocialMediaInstagram());
+            user.setSocialMediaTwitter(request.getSocialMediaTwitter());
 
             UserEntity registeredUser = userService.registerUser(user);
 
