@@ -62,3 +62,28 @@ public class SubjectController {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }
+
+@RestController
+@RequestMapping("/api/user/subjects")
+class UserSubjectController {
+
+    private final SubjectService subjectService;
+
+    @Autowired
+    public UserSubjectController(SubjectService subjectService) {
+        this.subjectService = subjectService;
+    }
+
+    @GetMapping
+    public ResponseEntity<List<SubjectEntity>> getAllSubjects() {
+        List<SubjectEntity> subjects = subjectService.getAllSubjects();
+        return new ResponseEntity<>(subjects, HttpStatus.OK);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<SubjectEntity> getSubjectById(@PathVariable("id") Long subjectId) {
+        Optional<SubjectEntity> subject = subjectService.getSubjectById(subjectId);
+        return subject.map(s -> new ResponseEntity<>(s, HttpStatus.OK))
+                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    }
+}

@@ -59,3 +59,37 @@ public class BuildingController {
         return buildingService.calculateTotalOccupants(buildingID);
     }
 }
+
+@RestController
+@RequestMapping("/api/buildings/user")
+class UserBuildingController {
+
+    private final BuildingService buildingService;
+
+    @Autowired
+    public UserBuildingController(BuildingService buildingService) {
+        this.buildingService = buildingService;
+    }
+
+    // Get all buildings (Read-only for user access)
+    @GetMapping
+    public ResponseEntity<List<BuildingEntity>> getAllBuildings() {
+        List<BuildingEntity> buildings = buildingService.getAllBuildings();
+        return ResponseEntity.ok(buildings);
+    }
+
+    // Get building by ID (Read-only for user access)
+    @GetMapping("/{id}")
+    public ResponseEntity<BuildingEntity> getBuildingById(@PathVariable("id") int bldgID) {
+        Optional<BuildingEntity> building = buildingService.getBuildingById(bldgID);
+        return building.map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    // Get total occupants for a building (Read-only for user access)
+    @GetMapping("/{buildingID}/total-occupants")
+    public ResponseEntity<Integer> getTotalOccupants(@PathVariable int buildingID) {
+        int totalOccupants = buildingService.calculateTotalOccupants(buildingID);
+        return ResponseEntity.ok(totalOccupants);
+    }
+}

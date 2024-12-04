@@ -70,3 +70,29 @@ public class RoomController {
         }
     }
 }
+
+@RestController
+@RequestMapping("/api/user/rooms")
+class UserRoomController {
+
+    private final RoomService roomEntity; // Renamed to RoomEntity for clarity
+
+    @Autowired
+    public UserRoomController(RoomService roomEntity) {
+        this.roomEntity = roomEntity;
+    }
+
+    // Get all rooms (Read-only)
+    @GetMapping
+    public List<RoomEntity> getAllRooms() {
+        return roomEntity.getAllRooms();
+    }
+
+    // Get room by ID (Read-only)
+    @GetMapping("/{id}")
+    public ResponseEntity<RoomEntity> getRoomById(@PathVariable("id") Long roomID) {
+        Optional<RoomEntity> room = roomEntity.getRoomById(roomID);
+        return room.map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+}   

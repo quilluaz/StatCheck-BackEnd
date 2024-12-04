@@ -62,6 +62,45 @@ public class ScheduleController {
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
+
+    @GetMapping("/room/{roomId}")
+    public ResponseEntity<List<ScheduleEntity>> getSchedulesByRoom(@PathVariable Long roomId) {
+        List<ScheduleEntity> schedules = scheduleService.findByRoomEntity_RoomId(roomId);
+        return new ResponseEntity<>(schedules, HttpStatus.OK);
+    }
+
+    @GetMapping("/day/{dayOfWeek}")
+    public ResponseEntity<List<ScheduleEntity>> getSchedulesByDay(@PathVariable String dayOfWeek) {
+        List<ScheduleEntity> schedules = scheduleService.findByDayOfWeek(dayOfWeek);
+        return new ResponseEntity<>(schedules, HttpStatus.OK);
+    }
+}
+
+
+@RestController
+@RequestMapping("/api/user/schedules")
+class UserScheduleController {
+
+    private final ScheduleService scheduleService;
+
+    @Autowired
+    public UserScheduleController(ScheduleService scheduleService) {
+        this.scheduleService = scheduleService;
+    }
+
+    @GetMapping
+    public ResponseEntity<List<ScheduleEntity>> getAllSchedules() {
+        List<ScheduleEntity> schedules = scheduleService.getAllSchedules();
+        return new ResponseEntity<>(schedules, HttpStatus.OK);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ScheduleEntity> getScheduleById(@PathVariable("id") Long scheduleId) {
+        Optional<ScheduleEntity> schedule = scheduleService.getScheduleById(scheduleId);
+        return schedule.map(s -> new ResponseEntity<>(s, HttpStatus.OK))
+                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    }
+
     @GetMapping("/room/{roomId}")
     public ResponseEntity<List<ScheduleEntity>> getSchedulesByRoom(@PathVariable Long roomId) {
         List<ScheduleEntity> schedules = scheduleService.findByRoomEntity_RoomId(roomId);

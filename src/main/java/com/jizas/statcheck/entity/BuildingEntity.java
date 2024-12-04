@@ -27,7 +27,7 @@ public class BuildingEntity {
 
     @Min(value = 1, message = "Floors must be at least 1")
     @Column(name = "floors", nullable = false)
-    private int floors = 1;
+    private int floors = 1  ;
 
     @OneToMany(mappedBy = "building", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnoreProperties({"building", "hibernateLazyInitializer"})
