@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -94,5 +95,29 @@ class UserRoomController {
         Optional<RoomEntity> room = roomEntity.getRoomById(roomID);
         return room.map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    // Add capacity update endpoint
+    @PutMapping("/{id}/capacity")
+    public ResponseEntity<RoomEntity> updateRoomCapacity(
+            @PathVariable("id") Long roomId,
+            @RequestBody Map<String, Integer> payload) {
+        try {
+            Integer newCapacity = payload.get("currentCapacity");
+            if (newCapacity == null) {
+                return ResponseEntity.badRequest().build();
+            }
+
+            Optional<RoomEntity> roomOpt = roomEntity.getRoomById(roomId);
+            if (roomOpt.isPresent()) {
+                RoomEntity room = roomOpt.get();
+                room.setCurrentCapacity(newCapacity);
+                RoomEntity updatedRoom = roomEntity.saveRoom(room);
+                return ResponseEntity.ok(updatedRoom);
+            }
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
     }
 }   

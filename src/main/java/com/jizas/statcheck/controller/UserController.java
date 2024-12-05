@@ -48,6 +48,21 @@ public class UserController {
     @PostMapping("/api/auth/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request, HttpServletResponse response) {
         try {
+            // Clear any existing cookies first
+            Cookie[] cookies = ((ServletRequestAttributes) RequestContextHolder
+                .getRequestAttributes()).getRequest().getCookies();
+            if (cookies != null) {
+                for (Cookie cookie : cookies) {
+                    if ("accessToken".equals(cookie.getName()) || 
+                        "refreshToken".equals(cookie.getName())) {
+                        cookie.setValue("");
+                        cookie.setPath("/");
+                        cookie.setMaxAge(0);
+                        response.addCookie(cookie);
+                    }
+                }
+            }
+
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
             );
@@ -55,16 +70,16 @@ public class UserController {
             if (authentication.isAuthenticated()) {
                 UserEntity user = userService.findByEmail(request.getEmail());
                 
-                // Generate tokens
+                // Generate new tokens
                 String accessToken = jwtUtil.generateToken(user.getEmail(), user.getRole());
                 String refreshToken = jwtUtil.generateRefreshToken(user.getEmail());
 
-                // Create cookies with more permissive settings for development
+                // Create cookies
                 ResponseCookie accessTokenCookie = ResponseCookie.from("accessToken", accessToken)
                     .httpOnly(true)
                     .secure(false)  // Set to false for development
                     .path("/")
-                    .maxAge(jwtUtil.getExpirationTime() / 1000) // Convert to seconds
+                    .maxAge(jwtUtil.getExpirationTime() / 1000)
                     .sameSite("Lax")
                     .build();
 
@@ -72,14 +87,9 @@ public class UserController {
                     .httpOnly(true)
                     .secure(false)  // Set to false for development
                     .path("/")
-                    .maxAge(jwtUtil.getRefreshExpirationTime() / 1000) // Convert to seconds
+                    .maxAge(jwtUtil.getRefreshExpirationTime() / 1000)
                     .sameSite("Lax")
                     .build();
-
-                // Add debug logging
-                logger.debug("Setting cookies in login response");
-                logger.debug("Access Token: " + accessToken.substring(0, 20) + "...");
-                logger.debug("Access Token Cookie: " + accessTokenCookie.toString());
 
                 return ResponseEntity.ok()
                     .header(HttpHeaders.SET_COOKIE, accessTokenCookie.toString())
@@ -146,12 +156,8 @@ public class UserController {
             Cookie[] cookies = request.getCookies();
             String accessToken = null;
             
-            // Debug logging
-            logger.debug("Cookies received: " + (cookies != null ? cookies.length : "null"));
-            
             if (cookies != null) {
                 for (Cookie cookie : cookies) {
-                    logger.debug("Cookie found: " + cookie.getName() + "=" + cookie.getValue());
                     if ("accessToken".equals(cookie.getName())) {
                         accessToken = cookie.getValue();
                         break;
@@ -159,16 +165,19 @@ public class UserController {
                 }
             }
 
-            // Debug logging
-            logger.debug("Access token found: " + (accessToken != null));
+            if (accessToken == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("valid", false, "error", "No access token found"));
+            }
 
-            if (accessToken != null && jwtUtil.validateToken(accessToken)) {
+            if (jwtUtil.validateToken(accessToken)) {
                 String email = jwtUtil.extractEmail(accessToken);
                 UserEntity user = userService.findByEmail(email);
                 return ResponseEntity.ok(Map.of(
                     "valid", true,
                     "email", email,
-                    "role", user.getRole()
+                    "role", user.getRole(),
+                    "userId", user.getUserID()
                 ));
             }
 
@@ -202,12 +211,14 @@ public class UserController {
                 return ResponseEntity.ok(Map.of(
                     "valid", true,
                     "email", email,
-                    "role", user.getRole()
+                    "role", user.getRole(),
+                    "userId", user.getUserID()
                 ));
             }
 
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(Map.of("valid", false));
+                .body(Map.of("valid", false, "error", "Invalid or expired token"));
+            
         } catch (Exception e) {
             logger.error("Token verification failed", e);
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
@@ -293,9 +304,18 @@ public class UserController {
                         .body(Map.of("error", "You can only update your own profile"));
             }
 
-            UserEntity updatedProfile = userService.updateUserProfile(userId, updatedUser);
-            updatedProfile.setPassword(null); // Remove sensitive information
-            return ResponseEntity.ok(updatedProfile);
+            UserService.ProfileUpdateResult result = userService.updateUserProfile(userId, updatedUser);
+            result.user().setPassword(null); // Remove sensitive information
+            
+            if (result.emailChanged()) {
+                return ResponseEntity.status(HttpStatus.ACCEPTED)
+                        .body(Map.of(
+                            "message", "Email updated successfully. Please login again.",
+                            "requireRelogin", true
+                        ));
+            }
+            
+            return ResponseEntity.ok(result.user());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(Map.of("error", e.getMessage()));

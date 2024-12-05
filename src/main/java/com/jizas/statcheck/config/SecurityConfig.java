@@ -45,6 +45,18 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> 
                     session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .exceptionHandling(exceptions -> exceptions
+                    .authenticationEntryPoint((request, response, authException) -> {
+                        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                        response.setContentType("application/json");
+                        response.getWriter().write("{\"valid\": false, \"error\": \"Authentication failed\"}");
+                    })
+                    .accessDeniedHandler((request, response, accessDeniedException) -> {
+                        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                        response.setContentType("application/json");
+                        response.getWriter().write("{\"valid\": false, \"error\": \"Access denied\"}");
+                    })
+                )
                 .authorizeHttpRequests(auth -> auth
                     .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                     .requestMatchers(
@@ -52,6 +64,7 @@ public class SecurityConfig {
                         "/api/auth/signup",
                         "/api/auth/verify-token"
                     ).permitAll()
+                    .requestMatchers("/api/user/rooms/**").permitAll()
                     .requestMatchers("/api/admin/**").authenticated()
                     .requestMatchers("/api/admin/subjects/**").hasRole("ADMIN")
                     .requestMatchers("/api/admin/rooms/**").hasRole("ADMIN")
