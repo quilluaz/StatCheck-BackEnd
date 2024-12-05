@@ -96,6 +96,7 @@ public class UserController {
                     .header(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString())
                     .body(Map.of(
                         "message", "Login successful",
+                        "id", user.getUserID(),
                         "email", user.getEmail(),
                         "role", user.getRole()
                     ));
@@ -176,8 +177,8 @@ public class UserController {
                 return ResponseEntity.ok(Map.of(
                     "valid", true,
                     "email", email,
-                    "role", user.getRole(),
-                    "userId", user.getUserID()
+                    "userId", user.getUserID(),
+                    "role", user.getRole()
                 ));
             }
 
@@ -211,8 +212,8 @@ public class UserController {
                 return ResponseEntity.ok(Map.of(
                     "valid", true,
                     "email", email,
-                    "role", user.getRole(),
-                    "userId", user.getUserID()
+                    "userId", user.getUserID(),
+                    "role", user.getRole()
                 ));
             }
 

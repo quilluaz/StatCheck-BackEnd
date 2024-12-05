@@ -37,6 +37,9 @@ public class UserEntity {
     @Column
     private String socialMediaTwitter;
 
+    @Column
+    private String profilePicture;
+
     // Getters and setters
     public Long getUserID() {
         return userID;
@@ -108,5 +111,13 @@ public class UserEntity {
 
     public void setSocialMediaTwitter(String socialMediaTwitter) {
         this.socialMediaTwitter = socialMediaTwitter;
+    }
+
+    public String getProfilePicture() {
+        return profilePicture;
+    }
+
+    public void setProfilePicture(String profilePicture) {
+        this.profilePicture = profilePicture;
     }
 }
